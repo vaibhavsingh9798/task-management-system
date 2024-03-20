@@ -5,23 +5,25 @@ const User = require('../models/user')
 exports.signup = async (req,res) =>{
    const {email,password,name} = req.body
    try{
-  const isExist = await User.findOne({where:{email}})
+  const isExist = await User.findOne({email})
    if(!isExist){
-      let hashPassword = await bcrypt.hash(password,process.env.SALT_ROUND)
+      const saltRound = parseInt(process.env.SALT_ROUND );
+      let hashPassword = await bcrypt.hash(password,saltRound)
       let response = await User.create({name,email,password:hashPassword})
-      res.status(201).json({message:'user created successfull',success:true})
-   }else{
-      res.status(400).json({message:'User already exist',success:false})
+    return  res.status(201).json({message:'user created successfull',success:true,response})
    }
-   }catch(err){
-    res.status(500).json({message:'Internal Server Error',success:false})
+   else{
+    return  res.status(400).json({message:'User already exist',success:false});
+   }
+   }catch(err){   
+  return  res.status(500).json({message:'Internal Server Error',success:false,err})
    }
 }
 
-exports.sigin = async (req,res) =>{           // 
+exports.sigin = async (req,res) =>{         
    const {email,password} = req.body
    try{
-  const isExistUser = await User.findOne({where:{email}})
+  const isExistUser = await User.findOne({email})
    if(isExistUser){ 
       let isValidPassword = await bcrypt.compare(password,isExistUser.password)
       if(isValidPassword){
@@ -34,6 +36,6 @@ exports.sigin = async (req,res) =>{           //
       return res.status(404).json({ message: 'User not found' });
    }
    }catch(err){
-    res.status(500).json({message:'Internal Server Error',success:false})
+  return   res.status(500).json({message:'Internal Server Error',success:false})
    }
 }
